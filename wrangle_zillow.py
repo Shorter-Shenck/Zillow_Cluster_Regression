@@ -1,14 +1,23 @@
-import os
+#### Import Section
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import seaborn as sns
-
+import matplotlib.pyplot as plt
+import env
+import wrangle_zillow
 from os.path import exists
+
+from itertools import product
+from scipy.stats import levene , pearsonr, spearmanr, mannwhitneyu, f_oneway, ttest_ind
+from sklearn.metrics import mean_squared_error, explained_variance_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.linear_model import LinearRegression, TweedieRegressor, LassoLars
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.feature_selection import RFE, f_regression, SelectKBest
 
-import env
+import warnings
+warnings.filterwarnings("ignore")
 
 # !!!!!!!! WRITE UP A MODULE DESCRIPTION
 
@@ -54,11 +63,11 @@ def get_zillow_data():
         AND transactiondate like '%%2017%%';
     """
 
-        if exists('zillow_data.csv'):
-            df = pd.read_csv('zillow_data.csv')
-        else:
-            df = pd.read_sql(sql, get_connection('zillow'))
-            df.to_csv('zillow.csv', index=False)
+    if exists('zillow_data.csv'):
+        df = pd.read_csv('zillow_data.csv')
+    else:
+        df = pd.read_sql(sql, get_connection('zillow'))
+        df.to_csv('zillow.csv', index=False)
     return df
 
 def nulls_by_col(df):
@@ -79,7 +88,6 @@ def nulls_by_row(df):
     rows_missing = rows_missing.reset_index().groupby(['num_cols_missing', 'percent_cols_missing']).count().reset_index()
 
     return rows_missing
-
 def engineer_features(df):
     """
     """
@@ -109,7 +117,6 @@ def engineer_features(df):
     # #assign decades created from range to new decades column in dataset and apply labels
     # df['decades'] = pd.cut(df.year_built, np.arange(1870, 2030, 10), labels=decade_labels, ordered=True)
 
-
     #### Home Size
     #use quantiles to calculate subgroups and assign to new column
     q1, q3 = df.area.quantile([.25, .75])
@@ -118,13 +125,9 @@ def engineer_features(df):
     #### Estimated Tax Rate
     df['est_tax_rate'] = df.tax_amount / df.home_value
 
-
     df.county = df.county.map({6037: 'LA County', 6059: 'Orange County', 6111: 'Ventura County'})
-    #remove columns
-    df = df.drop(columns=['year_built', 'tax_amount'])
 
     return df
-
 def summarize(df):
     print('-----')
     print('DataFrame info:\n')
@@ -137,8 +140,8 @@ def summarize(df):
     print('Nulls By Column:', nulls_by_col(df))
     print('----')
     print('Nulls By Row:', nulls_by_row(df))
-    numerical_cols = df.select_dtypes(exclude='object').columns.to_list()
-    categorical_cols = df.select_dtypes(include='object').columns.to_list()
+    numerical_cols = df.select_dtypes(include='number').columns.to_list()
+    categorical_cols = df.select_dtypes(exclude='number').columns.to_list()
     print('value_counts: \n')
     for col in df.columns:
         print(f'Column Names: {col}')
@@ -150,6 +153,7 @@ def summarize(df):
     print('Report Finished')
     return
 
+
 def handle_missing_values(df, prop_required_columns=0.60, prop_required_row=0.75):
     threshold = int(round(prop_required_columns * len(df.index), 0))
     df = df.dropna(axis=1, thresh=threshold)
@@ -158,11 +162,13 @@ def handle_missing_values(df, prop_required_columns=0.60, prop_required_row=0.75
 
     return df
 
+
 def split_data(df):
     train_validate, test = train_test_split(df, test_size= .2, random_state=514)
     train, validate = train_test_split(train_validate, test_size= .3, random_state=514)
     print(train.shape, validate.shape, test.shape)
     return train, validate, test
+
 
 def scale_split_data (train, validate, test):
     #create scaler object
@@ -186,46 +192,6 @@ def scale_split_data (train, validate, test):
 
     return train_scaled, validate_scaled, test_scaled
 
-def engineer_features(df):
-    """
-    """
-
-    #remove unwanted columns, and reset index to id --> for the exercises
-    #age
-    df['age'] = 2022 - df['yearbuilt']
-
-    #log error bin
-    df['logerror_bin'] = pd.cut(df.logerror,[-6, df.logerror.mean() - df.logerror.std(), 
-                            df.logerror.mean() + df.logerror.std(), 10],labels=['<-1sig','-1sig~1sig','>1sig'])
-    
-    #rename 
-    df = df.rename(columns={'fips': 'county',
-                            'bedroomcnt': 'bedrooms', 
-                            'bathroomcnt':'bathrooms', 
-                            'calculatedfinishedsquarefeet': 'area', 
-                            'taxvaluedollarcnt': 'home_value',
-                            'yearbuilt': 'year_built', 
-                            'taxamount': 'tax_amount', 
-                            })
-    
-    # #### Decades: 
-    # #create list to hold labels for decades
-    # decade_labels = [x + 's' for x in np.arange(1870, 2030, 10)[:-1].astype('str')]
-
-    # #assign decades created from range to new decades column in dataset and apply labels
-    # df['decades'] = pd.cut(df.year_built, np.arange(1870, 2030, 10), labels=decade_labels, ordered=True)
-
-    #### Home Size
-    #use quantiles to calculate subgroups and assign to new column
-    q1, q3 = df.area.quantile([.25, .75])
-    df['home_size'] = pd.cut(df.area, [0,q1,q3, df.area.max()], labels=['small', 'medium', 'large'], right=True)
-
-    #### Estimated Tax Rate
-    df['est_tax_rate'] = df.tax_amount / df.home_value
-
-    df.county = df.county.map({6037: 'LA County', 6059: 'Orange County', 6111: 'Ventura County'})
-
-    return df
 
 def prep_zillow (df):
     """ 
@@ -280,7 +246,8 @@ def prep_zillow (df):
     #scale the data
     train_scaled, validate_scaled, test_scaled = scale_split_data(train, validate, test)
 
-    return df, train, validate, test, train_scaled, validate_scaled, test_scaled      
+    return df, train, validate, test, train_scaled, validate_scaled, test_scaled     
+
 
 def wrangle_zillow():
     """ 
