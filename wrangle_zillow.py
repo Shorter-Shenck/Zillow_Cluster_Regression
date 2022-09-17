@@ -4,7 +4,6 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import env
-import wrangle_zillow
 from os.path import exists
 
 from itertools import product
@@ -67,7 +66,7 @@ def get_zillow_data():
         df = pd.read_csv('zillow_data.csv')
     else:
         df = pd.read_sql(sql, get_connection('zillow'))
-        df.to_csv('zillow.csv', index=False)
+        df.to_csv('zillow_data.csv', index=False)
     return df
 
 def nulls_by_col(df):
@@ -207,7 +206,8 @@ def prep_zillow (df):
     df = df.drop(columns=['parcelid', 'buildingqualitytypeid','censustractandblock', 'calculatedbathnbr',
                         'heatingorsystemtypeid', 'propertylandusetypeid', 'year_built', 
                         'rawcensustractandblock', 'landuse', 'fullbathcnt', 'finishedsquarefeet12',
-                        'assessmentyear', 'regionidcounty','regionidzip', 'regionidcity','tax_amount'])
+                        'assessmentyear', 'regionidcounty','regionidzip', 'regionidcity','tax_amount',
+                        'propertycountylandusecode', 'propertyzoningdesc', 'roomcnt'])
     df = df.set_index('id')
 
     #fill na values
@@ -219,12 +219,13 @@ def prep_zillow (df):
     df.unitcnt.fillna(1,inplace=True)
     df.poolcnt.fillna(0, inplace=True)
 
+    # DEPRECATED: dropped columns in lines above
     #fix data types
-    col_to_fix = ['propertycountylandusecode',
-                'propertyzoningdesc']
+    # col_to_fix = ['propertycountylandusecode',
+    #             'propertyzoningdesc']
 
-    for col in col_to_fix:
-        df[col] = df[col].astype('str')
+    # for col in col_to_fix:
+    #     df[col] = df[col].astype('str')
 
     # handle the missing data --> decisions made in advance
     df = handle_missing_values(df, prop_required_columns=0.64)

@@ -107,9 +107,9 @@ est_tax_rate    | 4225 non-null   float64 | calculated estimnated tax rate bbase
 > Create required as well as supporting project modules and notebooks
 * `env.py`, `wrangle.py`,  `model.py`,  `Final Report.ipynb`
 * `wrangle.ipynb`,`model.ipynb` ,
-> Which columsn to import 
-> Deal with nulls
-> include or remove outliers for exploration
+> ~~Which columsn to import~~
+> ~~Deal with nulls~~
+> ~~include or remove outliers for exploration~~
 > Explore
 > Clustering stuff
 * A cluster model: 
@@ -160,13 +160,12 @@ est_tax_rate    | 4225 non-null   float64 | calculated estimnated tax rate bbase
 
 ### Model
 > Ensure all data is scaled
-> Create dummy vars
+> Create dummy vars of categorical columns
 > Set up comparison dataframes for evaluation metrics and model descriptions  
 > Set Baseline Prediction and evaluate accuracy  
 > Explore various models and feature combinations.
 * For initial M.V.P of each model include only `area`, `bedrooms`, `bathrooms` as features
-> Four Best Models ran on Validation Set
-
+> Choose **Four** Best Models ran on Validation Set
 
 >Choose **one** model to test
 
