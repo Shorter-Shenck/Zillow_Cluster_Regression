@@ -11,6 +11,7 @@ from scipy.stats import levene , pearsonr, spearmanr, mannwhitneyu, f_oneway, tt
 from sklearn.metrics import mean_squared_error, explained_variance_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression, TweedieRegressor, LassoLars
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.feature_selection import RFE, f_regression, SelectKBest
@@ -252,11 +253,50 @@ def prep_zillow (df):
     #split the data
     train, validate, test = split_data(df)
 
+    dict_to_cluster = { "house_tax":["tax_per_sqft","est_tax_rate","openness"],
+                    "house_details":["lotsizesquarefeet",'garagetotalsqft',"poolcnt"],
+                    "house_sizing":['area', 'bathrooms', 'bedrooms'],
+                    "house_locale":["latitude","longitude","age"],
+                    "cluster_order":[5,4,5,5]}
+
+    train,validate,test = get_kmeans_cluster_features(train,validate,test,dict_to_cluster)
+
     #scale the data
     train_scaled, validate_scaled, test_scaled = scale_split_data(train, validate, test)
 
     return df, train, validate, test, train_scaled, validate_scaled, test_scaled     
 
+def get_kmeans_cluster_features(train,test,validate,dict_to_cluster):
+    ''' 
+    takes in your three datasets to apply the new featuers to as well as
+    a dictionary (iterable lists with the last being the order of clustering (function to auto later))
+    '''
+
+    for i in range(len(list(dict_to_cluster))-1):
+        #set features
+        X1 = train[dict_to_cluster[list(dict_to_cluster)[i]]]
+        X2 = validate[dict_to_cluster[list(dict_to_cluster)[i]]]
+        X3 = test[dict_to_cluster[list(dict_to_cluster)[i]]]
+
+        # make, fit, apply:
+        scaler = MinMaxScaler()
+        # train is all numerical so I can call the whole thing
+        X1_scaled = pd.DataFrame(scaler.fit_transform(X1),index = X1.index,columns = X1.columns)
+        X2_scaled = pd.DataFrame(scaler.transform(X2),index = X2.index,columns = X2.columns)
+        X3_scaled = pd.DataFrame(scaler.transform(X3),index = X3.index,columns = X3.columns)
+
+        kmeans_scaled = KMeans(n_clusters=dict_to_cluster[list(dict_to_cluster)[len(list(dict_to_cluster))-1]][i])
+        kmeans_scaled.fit(X1_scaled)
+
+        X1_scaled["cluster"] = kmeans_scaled.predict(X1_scaled)
+        X2_scaled["cluster"] = kmeans_scaled.predict(X2_scaled)
+        X3_scaled["cluster"] = kmeans_scaled.predict(X3_scaled)
+
+        train[f"cluster {list(dict_to_cluster)[i]}"] = X1_scaled["cluster"]
+        validate[f"cluster {list(dict_to_cluster)[i]}"] = X2_scaled["cluster"]
+        test[f"cluster {list(dict_to_cluster)[i]}"] = X3_scaled["cluster"]
+
+    return train,test,validate
 
 def wrangle_zillow():
     """ 
