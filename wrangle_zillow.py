@@ -97,8 +97,8 @@ def engineer_features(df):
     df['age'] = 2022 - df['yearbuilt']
 
     #log error bin
-    df['logerror_bin'] = pd.cut(df.logerror,[-6, df.logerror.mean() - df.logerror.std(), 
-                            df.logerror.mean() + df.logerror.std(), 10],labels=['<-1sig','-1sig~1sig','>1sig'])
+    #df['logerror_bin'] = pd.cut(df.logerror,[-6, df.logerror.mean() - df.logerror.std(), 
+    #                        df.logerror.mean() + df.logerror.std(), 10],labels=['<-1sig','-1sig~1sig','>1sig'])
     
     #rename 
     df = df.rename(columns={'fips': 'county',
