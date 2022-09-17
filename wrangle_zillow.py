@@ -110,6 +110,14 @@ def engineer_features(df):
                             'taxamount': 'tax_amount', 
                             })
 
+    #not best way due to adapting from encoding
+    df["aircon"] =  np.where(df.aircon == "None", "None",
+                                np.where(df.aircon == "Central", "Central", "Other"))
+    #not best way due to adapting from encoding
+    df["heating"] =  np.where(df.heating == "Central", "Central",
+                                np.where(df.heating == "None", "None",
+                                np.where(df.heating == "Floor/Wall", "Floor/Wall", "Other")))
+
     ## feature to determine how open a house is likely to be
     df["openness"] = df.area / (df.bathrooms + df.bedrooms)
     ## feature to determine the relative tax per sqft
@@ -133,6 +141,7 @@ def engineer_features(df):
     df.county = df.county.map({6037: 'LA County', 6059: 'Orange County', 6111: 'Ventura County'})
 
     return df
+
 def summarize(df):
     print('-----')
     print('DataFrame info:\n')
@@ -264,7 +273,7 @@ def prep_zillow (df):
     #scale the data
     train_scaled, validate_scaled, test_scaled = scale_split_data(train, validate, test)
 
-    return df, train, validate, test, train_scaled, validate_scaled, test_scaled     
+    return df, train, validate, test, train_scaled, validate_scaled, test_scaled  
 
 def get_kmeans_cluster_features(train,test,validate,dict_to_cluster):
     ''' 
@@ -322,4 +331,4 @@ def wrangle_zillow():
     #summarize the data
     summarize(df)
 
-    return df, train, validate, test, train_scaled, validate_scaled, test_scaled  
+    return df, train, validate, test, train_scaled, validate_scaled, test_scaled
