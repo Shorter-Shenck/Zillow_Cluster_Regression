@@ -113,10 +113,6 @@ def engineer_features(df):
     #not best way due to adapting from encoding
     df["aircon"] =  np.where(df.aircon == "None", "None",
                                 np.where(df.aircon == "Central", "Central", "Other"))
-    #not best way due to adapting from encoding
-    df["heating"] =  np.where(df.heating == "Central", "Central",
-                                np.where(df.heating == "None", "None",
-                                np.where(df.heating == "Floor/Wall", "Floor/Wall", "Other")))
 
     ## feature to determine how open a house is likely to be
     df["openness"] = df.area / (df.bathrooms + df.bedrooms)
@@ -235,6 +231,11 @@ def prep_zillow (df):
     df.poolcnt.fillna(0, inplace=True)
 
     df = df[ (df["bedrooms"] > 0) | (df["bathrooms"] > 0) ]
+
+    #not best way due to adapting from encoding
+    df["heating"] =  np.where(df.heating == "Central", "Central",
+                                np.where(df.heating == "None", "None",
+                                np.where(df.heating == "Floor/Wall", "Floor/Wall", "Other")))
 
 
     # DEPRECATED: dropped columns in lines above
