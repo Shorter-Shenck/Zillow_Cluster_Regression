@@ -108,6 +108,11 @@ def engineer_features(df):
                             'yearbuilt': 'year_built', 
                             'taxamount': 'tax_amount', 
                             })
+
+    ## feature to determine how open a house is likely to be
+    df["openness"] = df.area / (df.bathrooms + df.bedrooms)
+    ## feature to determine the relative tax per sqft
+    df["tax_per_sqft"] = df.structuretaxvaluedollarcnt / df.area
     
     # #### Decades: 
     # #create list to hold labels for decades
@@ -218,6 +223,9 @@ def prep_zillow (df):
     df.garagetotalsqft.fillna(0,inplace=True)
     df.unitcnt.fillna(1,inplace=True)
     df.poolcnt.fillna(0, inplace=True)
+
+    df = df[ (df["bedrooms"] > 0) | (df["bathrooms"] > 0) ]
+
 
     # DEPRECATED: dropped columns in lines above
     #fix data types
