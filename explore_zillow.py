@@ -217,3 +217,42 @@ def viz_clusters(train,target):
         plt.legend()
         plt.title(f"value of {target} sorted by {cluster}")
     plt.show() 
+
+def explore_ttest_cluster(train,population_name="cluster house_sizing"):
+    ''' 
+    specific made function, takes in train and string name of cluster and runs a tailored function that 
+    does a 1 sample ttest based on predefined expectations and plots a the sub-cat in relation to non sub-cat for that feature
+    '''
+
+    # sets variables
+    target = "logerror"
+    alpha = .05
+    sample_name = int(score_clusters(train,target)\
+                    [score_clusters(train,target)\
+                        ["variable"].\
+                            str.contains(population_name)].\
+                                sort_values(by=["p_val"])\
+                                    ["variable"].tolist()[0][-2:-1])
+
+    #sets null hypothesis
+    H0 = f"{sample_name} as a sample has equal average values to {population_name} as a population regarding {target}"
+    Ha = f"{sample_name} as a sample does not have equal average values to {population_name} as a population regarding {target}"
+    #runs test and prints results
+    t, p = ttest_1samp( train[train[population_name] == sample_name][target], train[target].mean())
+    if p > alpha:
+        print("\n We fail to reject the null hypothesis (",(H0) , ")",'t=%.5f, p=%.5f' % (t,p))
+    else:
+        print("\n We reject the null Hypothesis (", '\u0336'.join(H0) + '\u0336' ,")",'t=%.5f, p=%.5f' % (t,p))
+    #creates a temp df that assists in plotting the feature
+    temp1 = train.copy()
+    temp1[population_name] = np.where(temp1[population_name] == sample_name,f"{population_name}-{sample_name}", f"{population_name}-others")
+    #does the plotting
+    plt.figure(figsize=(12,6))
+    sns.barplot(
+        data=temp1, x=population_name, y=target,
+        linewidth=3, edgecolor=".5", facecolor=(0, 0, 0, 0),
+    )
+    plt.axhline(y=temp1.logerror.mean(),label=f"{target} Mean {round(temp1.logerror.mean(),3)}",color="black")
+    plt.legend()
+    plt.title(f"{population_name} in relation to {target}")
+    plt.show()

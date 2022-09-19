@@ -22,6 +22,10 @@ warnings.filterwarnings("ignore")
 # !!!!!!!! WRITE UP A MODULE DESCRIPTION
 
 def get_connection(db, user=env.user, host=env.host, password=env.password):
+    ''' 
+    takes in database name and import from env
+    returns string to use for acquiring info
+    '''
     return f'mysql+pymysql://{user}:{password}@{host}/{db}'
 
 def get_zillow_data():
@@ -71,6 +75,11 @@ def get_zillow_data():
     return df
 
 def nulls_by_col(df):
+    ''' 
+    takes in dataframe
+    makes a dataframe of the results from counting nulls in column
+    returns that dataframe
+    '''
     num_missing = df.isnull().sum()
     percnt_miss = num_missing / df.shape[0] * 100
     cols_missing = pd.DataFrame(
@@ -82,6 +91,11 @@ def nulls_by_col(df):
     return cols_missing
 
 def nulls_by_row(df):
+    ''' 
+    takes in dataframe
+    makes a dataframe of results from counting nulls in row
+    returns that dataframe
+    '''
     num_missing = df.isnull().sum(axis=1)
     prnt_miss = num_missing / df.shape[1] * 100
     rows_missing = pd.DataFrame({'num_cols_missing': num_missing, 'percent_cols_missing': prnt_miss})
@@ -90,6 +104,16 @@ def nulls_by_row(df):
     return rows_missing
 def engineer_features(df):
     """
+    takes in dataframe (tailored use case for zillow)
+    makes an age feature
+    renames features
+    narrows down values of aircon
+    makes openness feature
+    makes tax/sqft feature
+    uses quantiles to categorize home size
+    makes est tax rate feature
+    renames county values
+    returns df
     """
 
     #remove unwanted columns, and reset index to id --> for the exercises
@@ -139,6 +163,12 @@ def engineer_features(df):
     return df
 
 def summarize(df):
+    '''  
+    takes in dataframe
+    prints out df info and df describe as well as the amount of nulls in df by column and row
+    then it finds the dtypes of "number" and makes the inverse categorical
+    prints out the value counts of cats, as well as binning and doing the same for numerical
+    '''
     print('-----')
     print('DataFrame info:\n')
     print (df.info())
@@ -165,6 +195,11 @@ def summarize(df):
 
 
 def handle_missing_values(df, prop_required_columns=0.60, prop_required_row=0.75):
+    ''' 
+    takes in a dataframe as well as threshould numbers for columns and rows
+    drops any column or row that does exceeds threshould
+    returns dataframe
+    '''
     threshold = int(round(prop_required_columns * len(df.index), 0))
     df = df.dropna(axis=1, thresh=threshold)
     threshold = int(round(prop_required_row * len(df.columns), 0))
@@ -174,6 +209,12 @@ def handle_missing_values(df, prop_required_columns=0.60, prop_required_row=0.75
 
 
 def split_data(df):
+    ''' 
+    takes in dataframe
+    uses train test split on data frame using test size of 2, returns train_validate, test
+    uses train test split on train_validate using test size of .3, returns train and validate
+    returns train, validate test
+    '''
     train_validate, test = train_test_split(df, test_size= .2, random_state=514)
     train, validate = train_test_split(train_validate, test_size= .3, random_state=514)
     print(train.shape, validate.shape, test.shape)
@@ -181,6 +222,13 @@ def split_data(df):
 
 
 def scale_split_data (train, validate, test):
+    ''' 
+    takes in your three datasets
+    applies minmax scaler to them using dtypes of number
+    fits to those columns
+    applies to copies of datasets
+    returns datasets scaled
+    '''
     #create scaler object
     scaler = MinMaxScaler()
 
@@ -295,7 +343,7 @@ def get_kmeans_cluster_features(train,test,validate,dict_to_cluster):
         X2_scaled = pd.DataFrame(scaler.transform(X2),index = X2.index,columns = X2.columns)
         X3_scaled = pd.DataFrame(scaler.transform(X3),index = X3.index,columns = X3.columns)
 
-        kmeans_scaled = KMeans(n_clusters=dict_to_cluster[list(dict_to_cluster)[len(list(dict_to_cluster))-1]][i])
+        kmeans_scaled = KMeans(n_clusters=dict_to_cluster[list(dict_to_cluster)[len(list(dict_to_cluster))-1]][i],random_state=123)
         kmeans_scaled.fit(X1_scaled)
 
         X1_scaled["cluster"] = kmeans_scaled.predict(X1_scaled)
