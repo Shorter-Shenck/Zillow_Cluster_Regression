@@ -295,7 +295,7 @@ def get_kmeans_cluster_features(train,test,validate,dict_to_cluster):
         X2_scaled = pd.DataFrame(scaler.transform(X2),index = X2.index,columns = X2.columns)
         X3_scaled = pd.DataFrame(scaler.transform(X3),index = X3.index,columns = X3.columns)
 
-        kmeans_scaled = KMeans(n_clusters=dict_to_cluster[list(dict_to_cluster)[len(list(dict_to_cluster))-1]][i])
+        kmeans_scaled = KMeans(n_clusters=dict_to_cluster[list(dict_to_cluster)[len(list(dict_to_cluster))-1]][i],random_state=123)
         kmeans_scaled.fit(X1_scaled)
 
         X1_scaled["cluster"] = kmeans_scaled.predict(X1_scaled)
