@@ -71,30 +71,35 @@ cluster house_locale       | 51736 non-null  int32    | FE: Groups of ["latitude
 -----                    
 
 # Initial Questions and Hypotheses
-## Question 1 -  Does logerror and Area(sqft) have a signifcant relationship
+## Question 1 -  Does logerror and Area(sqft) have a signifcant relationship?
 * ${H_0}$: There is not a significant relationship in LogError and Area 
 * ${H_a}$: There is a significant relationship in LogError and Area 
 > Conclusion: There is enough evidence to reject our null hypothesis.
 
-## Question 2 - Is there a difference in the the sample of no Heating for Log Error?
+## Question 2 - Is there a difference in log error between the different types of heating?
 * ${H_0}$: There is no significant difference in mean LogError of the sample No Heating compared to the population  
 * ${H_a}$: There is significant difference in mean LogError of the sample No Heating compared to the population  
 > Conclusion: There is enough evidence to reject our null hypothesis.
 
-## Question 3 -  Does the Cluster group of Home Size have any clusters that are significantly different in relation to logerror?
+## Question 3 -  Does the Home Size clustering reveal any differences between the clusters?
 * ${H_0}$: There is no significant difference in mean LogError of the sample Home Size (Cluster 4) compared to the population  
 * ${H_a}$: There is significant difference in mean LogError of the sample Home Size (Cluster 4) compared to the population  
 > Conclusion: There is enough evidence to reject our null hypothesis. 
  
-## Question 4 -  Does the Cluster group of House Locale have any clusters that are significantly different in relation to logerror?
-* ${H_0}$: There is no significant difference in mean LogError of the sample House Locale (Cluster 1) compared to the population  
-* ${H_a}$: There is significant difference in mean LogError of the sample House Locale (Cluster 1) compared to the population  
+## Question 4 - Does Locale clustering reveal any differences between the clusters?
+* ${H_0}$: There is no significant difference in mean LogError of the sample House Locale (Cluster 0) compared to the population  
+* ${H_a}$: There is significant difference in mean LogError of the sample House Locale (Cluster 0) compared to the population  
 > Result: There is enough evidence to reject our null hypothesis.
 
 
 ## Summary of Key Findings and Takeaways
-> - A combination of features and clusters will likely give us the best result to predict log error
-> - These features may include: Area, Heating, Cluster of Home Size Area(sqft), Bedroom, Bathroom, Home Locale, Location, and age will all prove to have a level of significance in helping predict our target variable of log error in our modeling
+* Low correlation values among all features with `logerror` led to relying on clustering for bulk of feature differientation
+* Clustering creation was able to show difference in log error prediction
+* Feature sets informed by clustering performed best on model through validation phase
+    * Best model utilized Clustering based tax information, size, and local
+* Model gain on predictive performance vs. baseline prediction was minimal on test set
+    * Baseline RMSE: 0.1531
+    * Model RMSE: .1529 (Lower is better) 
 -----
 </br></br></br>
 
@@ -177,7 +182,7 @@ cluster house_locale       | 51736 non-null  int32    | FE: Groups of ["latitude
 > Choose **Four** Best Models to add to final report
 
 >Choose **one** model to evaluate on Test set
-* * GLM 1
+* GLM 1
 * Power: 3
 * Alpha: 0
 * Features: All features and cluster labels 
