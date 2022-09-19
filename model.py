@@ -281,26 +281,26 @@ def lars_mod(X, y, selectors, scores, fit_x_train=None, fit_y_train=None):
    #loop through selector combinations to pull out different features and degree levels
    for idx, selector in enumerate(selectors):  
       #create model object
-      lars = LassoLars(alpha=selector)
+      lars = LassoLars(alpha=selector[1])
       #create mdoel label
       model_label = f'LARS_{idx+1}'
 
       if fit_x_train is not None:
-         lars.fit(fit_x_train, fit_y_train.logerror)
+         lars.fit(fit_x_train[selector[0]], fit_y_train.logerror)
       else:   
-         lars.fit(X, y.logerror)
+         lars.fit(X[selector[0]], y.logerror)
 
       #predict train
       if model_label in y:
          model_label = f'LARS_{randint(50,100)}'
-         y[model_label] = lars.predict(X)
+         y[model_label] = lars.predict(X[selector[0]])
       else:
-         y[model_label] = lars.predict(X) 
+         y[model_label] = lars.predict(X[selector[0]]) 
 
       #calc trian rmse
       rmse = mean_squared_error(y.logerror, y[model_label], squared=False)
 
-      description = pd.DataFrame([[model_label, rmse, 'all', f'Alpha: {selector}']], columns=['Name', 'RMSE', 'Features', 'Parameters'])
+      description = pd.DataFrame([[model_label, rmse, selector[0], f'Alpha: {selector[1]}']], columns=['Name', 'RMSE', 'Features', 'Parameters'])
       scores = pd.concat([scores, description], ignore_index=True)
 
    return scores, y
@@ -324,9 +324,9 @@ def GLM_mod(X, y, selectors, scores, fit_x_train=None, fit_y_train=None):
    glm_descriptions = pd.DataFrame({}, columns=['Name','RMSE', 'Features', 'Parameters'])
 
    #create empty data frame to hold model descriptions    
-   for idx, combo in enumerate(selectors):  
+   for idx, selector in enumerate(selectors):  
       #create model object
-      glm = TweedieRegressor(power=combo[0], alpha=combo[1])
+      glm = TweedieRegressor(power=selector[1][0], alpha=selector[1][1])
 
       #create model label
       model_label = f'GLM_{idx+1}'
@@ -335,21 +335,21 @@ def GLM_mod(X, y, selectors, scores, fit_x_train=None, fit_y_train=None):
       #glm.fit(X, y.logerror)
       #fit object on X_train subset depeneding on its position as parameter or the optional variant
       if fit_x_train is not None:
-         glm.fit(fit_x_train, fit_y_train.logerror)
+         glm.fit(fit_x_train[selector[0]], fit_y_train.logerror)
       else:   
-         glm.fit(X, y.logerror)
+         glm.fit(X[selector[0]], y.logerror)
 
       #predict train
       if model_label in y:
          model_label = f'GLM_{randint(50,100)}'
-         y[model_label] = glm.predict(X)
+         y[model_label] = glm.predict(X[selector[0]])
       else:
-         y[model_label] = glm.predict(X)
+         y[model_label] = glm.predict(X[selector[0]])
          
       #calc rmse
       rmse = mean_squared_error(y.logerror, y[model_label], squared=False)
 
-      description = pd.DataFrame([[model_label, rmse, '-', f'Power,Alpha: {combo}']], columns=['Name', 'RMSE', 'Features', 'Parameters'])
+      description = pd.DataFrame([[model_label, rmse, selector[0], f'Power,Alpha: {selector[1]}']], columns=['Name', 'RMSE', 'Features', 'Parameters'])
       scores = pd.concat([scores, description], ignore_index=True)
 
    return scores, y 
@@ -380,17 +380,19 @@ def score_on_train(X_train, y_train):
 
    #create a lists of parameters
    pf_parameters = [2]
-   lars_parameters = [.1, .25, .5, .75, 1]
+   lars_parameters = [0, .1]
    glm_parameters = [(0,0), (0,.25), (0,.5), (0,.75), (0,1)]
 
    #use list with product to create tuples of feature/parameter combination to feed into model
    pf_selectors = list(product(feat_combos, pf_parameters))
+   lars_selectors =  list(product(feat_combos, lars_parameters))
+   glm_selectors =  list(product(feat_combos, glm_parameters))
 
    #run ols model with feature combinations
    scores, holder = pf_mod(X_train, y_train, pf_selectors, scores)
    scores, holder = ols_mod(X_train, y_train, feat_combos, scores)
-   scores, holder = lars_mod(X_train, y_train, lars_parameters, scores)
-   scores, holder = GLM_mod(X_train, y_train, glm_parameters, scores)
+   scores, holder = lars_mod(X_train, y_train, lars_selectors, scores)
+   scores, holder = GLM_mod(X_train, y_train, glm_selectors, scores)
 
 
    for idx, model in enumerate(y_train.drop(columns='logerror').columns):
@@ -429,8 +431,8 @@ def score_on_validate(train_scores, X_val, y_val, X_train, y_train):
   
       #create a lists of parameters
       pf_selectors = []
-      lars_parameters = []
-      glm_parameters = []
+      lars_selectors = []
+      glm_selectors = []
 
       if model.startswith('Pol'):
          features = validate_scores.loc[model]['Features']
@@ -439,13 +441,14 @@ def score_on_validate(train_scores, X_val, y_val, X_train, y_train):
          model_descriptions, y_val = pf_mod(X_val, y_val, pf_selectors, model_descriptions, X_train, y_train)
       elif model.startswith('GLM'):
          pow_alpha = eval(validate_scores.loc[model]['Parameters'][13:])
-         glm_parameters.append(pow_alpha) if pow_alpha not in glm_parameters else None
-         model_descriptions, y_val = GLM_mod(X_val, y_val, glm_parameters, model_descriptions, X_train, y_train)
-         glm_parameters = []   
+         features = validate_scores.loc[model]['Features']
+         glm_selectors.append((features,pow_alpha))
+         model_descriptions, y_val = GLM_mod(X_val, y_val, glm_selectors, model_descriptions, X_train, y_train)
       elif model.startswith('LARS'):
+         features = validate_scores.loc[model]['Features']
          alpha = eval(validate_scores.loc[model]['Parameters'][7:])
-         lars_parameters.append(alpha) if alpha not in lars_parameters else None
-         model_descriptions, y_val = lars_mod(X_val, y_val, lars_parameters, model_descriptions, X_train, y_train)
+         lars_selectors.append((features, alpha))
+         model_descriptions, y_val = lars_mod(X_val, y_val, lars_selectors, model_descriptions, X_train, y_train)
       elif model.startswith('OLS_'):
          feat_combos.append((validate_scores.loc[model]['Features']))
          model_descriptions, y_val = ols_mod(X_val, y_val, feat_combos, model_descriptions, X_train, y_train)
@@ -469,11 +472,14 @@ def score_on_test(X_test, y_test, X_train, y_train):
 
     #select parameters or features for final modeling on test set
     #test_selectors = [(['bedrooms', 'area', 'county_Orange County', 'home_size_large'], 2)]
-    test_parameters = [(0,0)]
+    test_features = ['basementsqft', 'area', 'lotsizesquarefeet', 'structuretaxvaluedollarcnt', 'home_value',
+                     'landtaxvaluedollarcnt', 'tax_per_sqft', 'poolcnt_1.0', 'cluster house_details_0.3333333333333333', 'cluster house_details_1.0']
+    test_parameters = (0,0)
+    test_selectors = [(test_features, test_parameters)]
 
     #fit and use the model that scored highest on validate set
     #test_score, holder = pf_mod(X_test, y_test, test_selectors, test_score, X_train, y_train)
-    test_score, holder = GLM_mod(X_test, y_test, test_parameters, test_score, X_train, y_train)
+    test_score, holder = GLM_mod(X_test, y_test, test_selectors, test_score, X_train, y_train)
 
     #adds correct model name to data frame
     test_score.iat[1, 0] = 'GLM_1'
