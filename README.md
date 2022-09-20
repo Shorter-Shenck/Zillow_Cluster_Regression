@@ -163,14 +163,14 @@ cluster house_locale       | 51736 non-null  int32    | FE: Clusters based on `l
 ## Explore
 * Removed Year Built, and Tax Amount
 > Bivariate exploration
-* Investigate and visualize *all* features against log error
-> Identify possible areas for feature engineering
-* 
+* Investigate and visualize features against log error
+> Identify additional possible areas for feature engineering (clustering)
+* Use testing and visualizations to determine which features are significant in determining difference in logerror
 > Multivariate:
 * Visuals exploring features as they relate to home value
 > Statistical Analysis:
-* 
-* 
+* SpearmanR for continous vs continous
+* Two tailed T-Test (Sample vs Population) for discrete vs continous
 > Collect and collate section *Takeaways*
 
 ## Model
