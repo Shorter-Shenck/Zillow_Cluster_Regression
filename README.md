@@ -17,7 +17,7 @@
 
 > Refine work into report in form of jupyter notebook. 
 
-> Present walkthrough of report in 5 minute presentation to classmates and instructors
+> Present walkthrough of report in 5 minute recorded presentation
 
 * Detail work done, underlying rationale for decisions, methodologies chosen, findings, and conclusions.
 
@@ -26,7 +26,7 @@
 ## Project Business Goals
 > Construct ML Regression model that accurately predicts log error of *Single Family Properties* using clustering techniques to guide feature selection for modeling</br>
 
->Find key drivers of log error</br>
+> Find key drivers of log error</br>
 
 > Deliver report that the data science team can read through and replicate, while understanding what steps were taken, why and what the outcome was.
 
@@ -64,10 +64,10 @@ openness                   | 51736 non-null  float64  | FE: Area / (Bedrooms + B
 tax_per_sqft               | 51736 non-null  float64  | FE: Home Value / Sqft: Relative value
 home_size                  | 51736 non-null  category | FE: Binned Category of Area
 est_tax_rate               | 51736 non-null  float64  | FE: Estimated Tax Rate of County
-cluster house_tax          | 51736 non-null  int32    | FE: Groups of ["tax_per_sqft","est_tax_rate","openness"]
-cluster house_details      | 51736 non-null  int32    | FE: Groups of ["lotsizesquarefeet",'garagetotalsqft',"poolcnt"]
-cluster house_sizing       | 51736 non-null  int32    | FE: Groups of ['area','bathrooms','bedrooms']
-cluster house_locale       | 51736 non-null  int32    | FE: Groups of ["latitude","longitude","age"]
+cluster house_tax          | 51736 non-null  int32    | FE: Clusters based on `tax_per_sqft`,`est_tax_rate`, and `openness`
+cluster house_details      | 51736 non-null  int32    | FE: Clusters based on `lotsizesquarefeet`, `garagetotalsqft`, `poolcnt`
+cluster house_sizing       | 51736 non-null  int32    | FE: Clusters based on `area`, `bathrooms`, and `bedrooms`
+cluster house_locale       | 51736 non-null  int32    | FE: Clusters based on `latitude`,`longitude`, and `age`
 -----                    
 
 # Initial Questions and Hypotheses
@@ -94,24 +94,25 @@ cluster house_locale       | 51736 non-null  int32    | FE: Groups of ["latitude
 
 ## Summary of Key Findings and Takeaways
 * Low correlation values among all features with `logerror` led to relying on clustering for bulk of feature differientation
-* Clustering creation was able to show difference in log error prediction
+* Cluster creation was able to show difference in log error prediction
 * Feature sets informed by clustering performed best on model through validation phase
-    * Best model utilized Clustering based tax information, size, and local
-* Model gain on predictive performance vs. baseline prediction was minimal on test set
-    * Baseline RMSE: 0.1531
-    * Model RMSE: .1529 (Lower is better) 
+    * Best model utilized Clustering based on tax information, size, and locale
+* Model gain on predictive performance vs. baseline prediction using median `logerror` was minimal on test set
+    * Baseline Prediction RMSE: 0.1531
+    * Model RMSE: 0.1529 (Lower is better) 
 -----
 </br></br></br>
 
 # Pipeline Walkthrough
 ## Plan
-> Create and build out project README
+> Create and build out project README  
 > Create required as well as supporting project modules and notebooks
 * `env.py`, `wrangle_zillow.py`,  `model.py`,  `Final Report.ipynb`
 * `wrangle.ipynb`,`model.ipynb` ,
-> Decide which columsn to import 
-> Deal with null values
-> Decide how to deal with outliers
+> Decide which colums to import   
+> Deal with null values  
+> Decide how to deal with outliers  
+
 > Clustering
 - Decide on which features to use when crafting clusters
 - Create cluster feature sets
@@ -127,7 +128,7 @@ cluster house_locale       | 51736 non-null  int32    | FE: Groups of ["latitude
     - Adjust parameters and feature makes
 * Handle acquire, explore, and scaling in wrangle
 > Verify docstring is implemented for each function within all notebooks and modules 
-</br></br></br>
+ 
 
 ## Acquire
 > Acquired zillow 2017 data from appropriate sources
@@ -136,27 +137,27 @@ cluster house_locale       | 51736 non-null  int32    | FE: Groups of ["latitude
 * Eliminated 
 > Add appropriate artifacts into `wrangle_zillow.py`
 
-## Prepared
+## Prepare
 > Univariate exploration: 
 * Basic histograms/boxplot for categories
-> Take care of outliers
+> Take care of outliers  
 > Handle any possible threats of data leakage
 * Removed log error bins to prevent leakage
 
-> Feature Engineering *shifted to accomodate removal of outliers*
-* Age: Columns that have the Age 
-* Size: Column created to categorize homes by size
-* Openness: Column created to measure the 'opennes'
-* Estimated Tax Rate: Created to estimate a tax rate based off the home_value divided by the tax rate
-* A cluster model: 
-> - `house_tax` :|: [tax_per_sqft, est_tax_rate, openness]
-> - `house_details` :|: [lotsizesquarefeet, garagetotalsqft, poolcnt]
-> - `house_sizing` :|: [area, bathrooms, bedrooms]
-> - `house_locale` :|: [latitude, longitude ,age]
+> Feature Engineering **shifted to accomodate removal of outliers*
+* `age`: Feature that reflects the age of the property
+* `home_size`: Feature places homes into size categories based on home sqft
+* `openness`: Ratio of home sqft to combined number of bed/bathrooms
+* `est_tax_rate`: Created to estimate a tax rate based off the home_value divided by the tax rate
+* Cluster modeling: 
+> - `house_tax` :|: `tax_per_sqft`, `est_tax_rate`, `openness`
+> - `house_details` :|: `lotsizesquarefeet`, `garagetotalsqft`, `poolcnt`
+> - `house_sizing` :|: `area`, `bathrooms`, `bedrooms`
+> - `house_locale` :|: `latitude`, `longitude` , `age`
 
-> Split data
-> Scale data
-> Collect and collate section *Takeaways*
+> Split data  
+> Scale data  
+> Collect and collate section *Takeaways*  
 > Add appropirate artifacts into `wrangle.py` or `explore.py`
 
 ## Explore
@@ -173,10 +174,10 @@ cluster house_locale       | 51736 non-null  int32    | FE: Groups of ["latitude
 > Collect and collate section *Takeaways*
 
 ## Model
-> Ensure all data is scaled
-> Create dummy vars of categorical columns
-> Set up comparison dataframes for evaluation metrics and model descriptions  
-> Set Baseline Prediction and evaluate RMSE and r^2 scores
+> Ensure all data is scaled  
+> Create dummy vars of categorical columns  
+> Set up comparison dataframes for evaluation metrics and model descriptions    
+> Set Baseline Prediction and evaluate RMSE and r^2 scores  
 > Explore various models and feature combinations.
 * For initial M.V.P of each model include only single cluster label features
 > Choose **Four** Best Models to add to final report
@@ -194,12 +195,12 @@ cluster house_locale       | 51736 non-null  int32    | FE: Groups of ["latitude
 > Finalize and upload project repository with appropriate documentation 
 > Created recorded presentation for delivery
 ----
-</br></br>
+</br>
 
 ## Project Reproduction Requirements
 > Requires personal `env.py` file containing database credentials  
 > Steps:
 * Fully examine this `README.md`
-* Download `wrangle.py, explore.py`, `model.py`, and `Final Report.ipynb` to working directory
+* Download `wrangle_zillow.py, explore_zillow.py`, `model.py`, and `Final Report.ipynb` to working directory
 * Create and add personal `env.py` file to directory. Requires user, password, and host variables
 * Run `Final Report.ipynb`
