@@ -471,21 +471,22 @@ def score_on_test(X_test, y_test, X_train, y_train):
     test_score = pd.DataFrame([['pred_median', test_pred_rmse, 0, 'N/A', 'N/A']], columns=['Name','RMSE', 'r^2 score','Features', 'Parameters'])
 
     #select parameters or features for final modeling on test set
-    #test_selectors = [(['bedrooms', 'area', 'county_Orange County', 'home_size_large'], 2)]
-    test_features = ['basementsqft', 'area', 'lotsizesquarefeet', 'structuretaxvaluedollarcnt', 'home_value',
-                     'landtaxvaluedollarcnt', 'tax_per_sqft', 'poolcnt_1.0', 'cluster house_details_0.3333333333333333', 'cluster house_details_1.0']
-    test_parameters = (0,0)
-    test_selectors = [(test_features, test_parameters)]
+    tax_feat = ['cluster house_tax_0.25', 'cluster house_tax_0.5', 'cluster house_tax_0.75', 'cluster house_tax_1.0',
+               'cluster house_locale_0.25', 'cluster house_locale_0.5', 'cluster house_locale_0.75', 'cluster house_locale_1.0',
+               'cluster house_sizing_0.25', 'cluster house_sizing_0.5', 'cluster house_sizing_0.75', 'cluster house_sizing_1.0',
+               'area', 'poolcnt_1.0', 'home_value', 'county_Orange County', 'county_Ventura County']
+
+    test_parameters = 0
+    test_selectors = [(tax_feat, test_parameters)]
 
     #fit and use the model that scored highest on validate set
     #test_score, holder = pf_mod(X_test, y_test, test_selectors, test_score, X_train, y_train)
-    test_score, holder = GLM_mod(X_test, y_test, test_selectors, test_score, X_train, y_train)
+    test_score, holder = lars_mod(X_test, y_test, test_selectors, test_score, X_train, y_train)
 
     #adds correct model name to data frame
-    test_score.iat[1, 0] = 'GLM_1'
+    test_score.iat[1, 0] = 'LARS_1'
 
     #add r^2 score 
     test_score.iat[1,2] = explained_variance_score(y_test['logerror'], y_test.iloc[:,2])
-    print(y_test.iloc[:,2])
-
+    
     return test_score
