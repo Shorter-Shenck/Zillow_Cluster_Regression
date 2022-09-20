@@ -377,7 +377,7 @@ def wrangle_zillow():
     #drop columns that are unneeded, split data
     df, train, validate, test, train_scaled, validate_scaled, test_scaled = prep_zillow(df)
 
-    #summarize the data
-    summarize(df)
+    #summarize the data --> commented out for final presentation
+    #summarize(df)
 
     return df, train, validate, test, train_scaled, validate_scaled, test_scaled
